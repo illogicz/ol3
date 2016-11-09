@@ -93,7 +93,7 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
   }
   var replayGroup = this.replayGroup_;
   if (replayGroup && !replayGroup.isEmpty()) {
-    var layer = this.getLayer();
+    var layer = /** @type {ol.layer.Vector} */ (this.getLayer());
     var drawOffsetX = 0;
     var drawOffsetY = 0;
     var replayContext;
@@ -126,35 +126,40 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
     var height = frameState.size[1] * pixelRatio;
     ol.render.canvas.rotateAtOffset(replayContext, -rotation,
         width / 2, height / 2);
-    replayGroup.replay(replayContext, pixelRatio, transform, rotation,
-        skippedFeatureUids);
-    if (vectorSource.getWrapX() && projection.canWrapX() &&
-        !ol.extent.containsExtent(projectionExtent, extent)) {
-      var startX = extent[0];
-      var worldWidth = ol.extent.getWidth(projectionExtent);
-      var world = 0;
-      var offsetX;
-      while (startX < projectionExtent[0]) {
-        --world;
-        offsetX = worldWidth * world;
-        transform = this.getTransform(frameState, offsetX);
-        replayGroup.replay(replayContext, pixelRatio, transform, rotation,
-            skippedFeatureUids);
-        startX += worldWidth;
+
+
+    if(!vectorSource.getWrapX()){
+      replayGroup.replay(replayContext, pixelRatio, transform, rotation,
+          skippedFeatureUids);
+    } else {
+      var renderExtent = extent;
+      var layerExtent = layer.getExtent();
+      if(layerExtent){
+        renderExtent = ol.extent.getIntersection(renderExtent, layerExtent);
       }
-      world = 0;
-      startX = extent[2];
-      while (startX > projectionExtent[2]) {
-        ++world;
-        offsetX = worldWidth * world;
-        transform = this.getTransform(frameState, offsetX);
-        replayGroup.replay(replayContext, pixelRatio, transform, rotation,
-            skippedFeatureUids);
-        startX -= worldWidth;
+      if(!ol.extent.isEmpty(renderExtent)){
+        var buffer = viewState.resolution * layer.getRenderBuffer();
+        var sourceExtent = ol.extent.buffer(vectorSource.getExtent(), buffer);
+        if(renderExtent[1] < sourceExtent[3] && renderExtent[3] > sourceExtent[1]){
+          var worldWidth = ol.extent.getWidth(projectionExtent);
+          var offsetX = 0;
+          while(renderExtent[2] - offsetX - worldWidth > sourceExtent[0]){
+            offsetX += worldWidth;
+          }
+          while(renderExtent[2] - offsetX < sourceExtent[0]){
+            offsetX -= worldWidth;
+          }
+          while(renderExtent[0] - offsetX < sourceExtent[2]){
+            transform = this.getTransform(frameState, offsetX);
+            replayGroup.replay(replayContext, pixelRatio, transform, rotation,
+                skippedFeatureUids);
+            offsetX -= worldWidth;
+          }
+          transform = this.getTransform(frameState, 0);
+        }
       }
-      // restore original transform for render and compose events
-      transform = this.getTransform(frameState, 0);
     }
+
     ol.render.canvas.rotateAtOffset(replayContext, rotation,
         width / 2, height / 2);
 
@@ -252,17 +257,10 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
       vectorLayerRenderBuffer * resolution);
   var projectionExtent = viewState.projection.getExtent();
 
-  if (vectorSource.getWrapX() && viewState.projection.canWrapX() &&
-      !ol.extent.containsExtent(projectionExtent, frameState.extent)) {
-    // For the replay group, we need an extent that intersects the real world
-    // (-180° to +180°). To support geometries in a coordinate range from -540°
-    // to +540°, we add at least 1 world width on each side of the projection
-    // extent. If the viewport is wider than the world, we need to add half of
-    // the viewport width to make sure we cover the whole viewport.
-    var worldWidth = ol.extent.getWidth(projectionExtent);
-    var buffer = Math.max(ol.extent.getWidth(extent) / 2, worldWidth);
-    extent[0] = projectionExtent[0] - buffer;
-    extent[2] = projectionExtent[2] + buffer;
+   if (vectorSource.getWrapX()) {
+    const sourceExtent = vectorSource.getExtent();
+    extent[0] = sourceExtent[0] - vectorLayerRenderBuffer * resolution;
+    extent[2] = sourceExtent[2] + vectorLayerRenderBuffer * resolution;
   }
 
   if (!this.dirty_ &&
