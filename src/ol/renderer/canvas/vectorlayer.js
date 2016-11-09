@@ -128,28 +128,28 @@ ol.renderer.canvas.VectorLayer.prototype.composeFrame = function(frameState, lay
         width / 2, height / 2);
 
 
-    if(!vectorSource.getWrapX()){
+    if (!vectorSource.getWrapX()) {
       replayGroup.replay(replayContext, pixelRatio, transform, rotation,
           skippedFeatureUids);
     } else {
       var renderExtent = extent;
       var layerExtent = layer.getExtent();
-      if(layerExtent){
+      if (layerExtent) {
         renderExtent = ol.extent.getIntersection(renderExtent, layerExtent);
       }
-      if(!ol.extent.isEmpty(renderExtent)){
+      if (!ol.extent.isEmpty(renderExtent)) {
         var buffer = viewState.resolution * layer.getRenderBuffer();
         var sourceExtent = ol.extent.buffer(vectorSource.getExtent(), buffer);
-        if(renderExtent[1] < sourceExtent[3] && renderExtent[3] > sourceExtent[1]){
+        if (renderExtent[1] < sourceExtent[3] && renderExtent[3] > sourceExtent[1]) {
           var worldWidth = ol.extent.getWidth(projectionExtent);
           var offsetX = 0;
-          while(renderExtent[2] - offsetX - worldWidth > sourceExtent[0]){
+          while (renderExtent[2] - offsetX - worldWidth > sourceExtent[0]) {
             offsetX += worldWidth;
           }
-          while(renderExtent[2] - offsetX < sourceExtent[0]){
+          while (renderExtent[2] - offsetX < sourceExtent[0]) {
             offsetX -= worldWidth;
           }
-          while(renderExtent[0] - offsetX < sourceExtent[2]){
+          while (renderExtent[0] - offsetX < sourceExtent[2]) {
             transform = this.getTransform(frameState, offsetX);
             replayGroup.replay(replayContext, pixelRatio, transform, rotation,
                 skippedFeatureUids);
@@ -255,10 +255,9 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
 
   var extent = ol.extent.buffer(frameStateExtent,
       vectorLayerRenderBuffer * resolution);
-  var projectionExtent = viewState.projection.getExtent();
 
-   if (vectorSource.getWrapX()) {
-    const sourceExtent = vectorSource.getExtent();
+  if (vectorSource.getWrapX()) {
+    var sourceExtent = vectorSource.getExtent();
     extent[0] = sourceExtent[0] - vectorLayerRenderBuffer * resolution;
     extent[2] = sourceExtent[2] + vectorLayerRenderBuffer * resolution;
   }
