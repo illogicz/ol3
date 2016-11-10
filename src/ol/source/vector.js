@@ -626,7 +626,7 @@ ol.source.Vector.prototype.getClosestFeatureToCoordinate = function(coordinate, 
 /**
  * Get the extent of the features currently in the source.
  *
- * This method is not available when the source is configured with
+ * This method returns an empty extent when source is configured with
  * `useSpatialIndex` set to `false`.
  * @return {!ol.Extent} Extent.
  * @api stable
@@ -634,7 +634,7 @@ ol.source.Vector.prototype.getClosestFeatureToCoordinate = function(coordinate, 
 ol.source.Vector.prototype.getExtent = function() {
   ol.DEBUG && console.assert(this.featuresRtree_,
       'getExtent does not work when useSpatialIndex is set to false');
-  return this.featuresRtree_.getExtent();
+  return this.featuresRtree_ ? this.featuresRtree_.getExtent() : ol.extent.createEmpty();
 };
 
 
