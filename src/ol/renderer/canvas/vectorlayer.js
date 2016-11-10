@@ -264,23 +264,24 @@ ol.renderer.canvas.VectorLayer.prototype.prepareFrame = function(frameState, lay
 
   if (vectorSource.getWrapX()) {
     var sourceExtent = vectorSource.getExtent();
-    if(ol.extent.isEmpty(sourceExtent)){
+    var buffer;
+    if (ol.extent.isEmpty(sourceExtent)) {
       var projectionExtent = viewState.projection.getExtent();
-      if(viewState.projection.canWrapX() && 
-          !ol.extent.containsExtent(projectionExtent, frameState.extent)){
+      if (viewState.projection.canWrapX() &&
+          !ol.extent.containsExtent(projectionExtent, frameState.extent)) {
         // For the replay group, we need an extent that intersects the real world
         // (-180° to +180°). To support geometries in a coordinate range from -540°
         // to +540°, we add at least 1 world width on each side of the projection
         // extent. If the viewport is wider than the world, we need to add half of
         // the viewport width to make sure we cover the whole viewport.
         var worldWidth = ol.extent.getWidth(projectionExtent);
-        var buffer = Math.max(ol.extent.getWidth(extent) / 2, worldWidth);
+        buffer = Math.max(ol.extent.getWidth(extent) / 2, worldWidth);
         extent[0] = projectionExtent[0] - buffer;
         extent[2] = projectionExtent[2] + buffer;
       }
     } else {
       // Use source extent if available
-      var buffer = vectorLayerRenderBuffer * resolution;
+      buffer = vectorLayerRenderBuffer * resolution;
       extent[0] = sourceExtent[0] - buffer;
       extent[2] = sourceExtent[2] + buffer;
     }
