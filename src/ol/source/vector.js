@@ -632,8 +632,6 @@ ol.source.Vector.prototype.getClosestFeatureToCoordinate = function(coordinate, 
  * @api stable
  */
 ol.source.Vector.prototype.getExtent = function() {
-  ol.DEBUG && console.assert(this.featuresRtree_,
-      'getExtent does not work when useSpatialIndex is set to false');
   return this.featuresRtree_ ? this.featuresRtree_.getExtent() : ol.extent.createEmpty();
 };
 
