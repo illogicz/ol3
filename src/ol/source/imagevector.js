@@ -112,13 +112,13 @@ ol.inherits(ol.source.ImageVector, ol.source.ImageCanvas);
 ol.source.ImageVector.prototype.canvasFunctionInternal_ = function(extent, resolution, pixelRatio, size, projection) {
 
   var renderExtent = extent;
-  if(this.source_.getWrapX()){
-    var sourceExtent = this.source_.getExtent();
-    if(!ol.extent.isEmpty(sourceExtent)){
+  var sourceExtent = this.source_.getExtent();
+  if (this.source_.getWrapX()) {
+    if (!ol.extent.isEmpty(sourceExtent)) {
       renderExtent = ol.extent.buffer(sourceExtent, this.renderBuffer_ * resolution);
     }
   }
-  
+
   var replayGroup = new ol.render.canvas.ReplayGroup(
       ol.renderer.vector.getTolerance(resolution, pixelRatio), renderExtent,
       resolution, this.source_.getOverlaps(), this.renderBuffer_);
@@ -134,7 +134,7 @@ ol.source.ImageVector.prototype.canvasFunctionInternal_ = function(extent, resol
         loading = loading ||
             this.renderFeature_(feature, resolution, pixelRatio, replayGroup);
       }, this);
-      replayGroup.finish();
+  replayGroup.finish();
 
   if (loading) {
     return null;
@@ -151,12 +151,11 @@ ol.source.ImageVector.prototype.canvasFunctionInternal_ = function(extent, resol
 
   var transform = this.getTransform_(ol.extent.getCenter(extent),
       resolution, pixelRatio, size);
-  if(!this.source_.getWrapX()){
+  if (!this.source_.getWrapX()) {
     replayGroup.replay(this.canvasContext_, pixelRatio, transform, 0, {});
 
   } else {
-    var renderCount = 0;
-    var sourceExtent = this.source_.getExtent();
+    //var renderCount = 0;
     var projectionExtent = projection.getExtent();
     if (!ol.extent.isEmpty(sourceExtent)) {
       sourceExtent = sourceExtent;
@@ -174,14 +173,14 @@ ol.source.ImageVector.prototype.canvasFunctionInternal_ = function(extent, resol
         offsetX -= worldWidth;
       }
       while (extent[0] - offsetX < sourceExtent[2]) {
-        const center = ol.extent.getCenter(extent);
+        var center = ol.extent.getCenter(extent);
         center[0] -= offsetX;
         transform = this.getTransform_(center, resolution, pixelRatio, size);
         replayGroup.replay(this.canvasContext_, pixelRatio, transform, 0, {});
         offsetX -= worldWidth;
-        renderCount++;
+        //renderCount++;
       }
-      console.log(this.get("name"), renderCount);
+      //console.log(this.get("name"), renderCount);
       transform = this.getTransform_(ol.extent.getCenter(extent),
             resolution, pixelRatio, size);
     }
